@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  # 'type: NodePort' é como vai acessar o NGINX de fora do cluster.
+  type: NodePort # Expõe o serviço para acesso externo
+  selector:
+    app: nginx # Redireciona para os Pods com o nome 'app: nginx'
+  ports:
+  - protocol: TCP
+    port: 80 # Porta que o serviço expõe
+    targetPort: 80 # Porta dos containers NGINX

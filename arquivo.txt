@@ -1,0 +1,36 @@
+# Inicia o cluster Kubernetes local (Minikube) usando Docker como "motor"
+minikube start --driver=docker
+
+# Lista os pods
+kubectl get pods
+
+# Conecta o Docker da sua máquina ao Docker de dentro do Minikube.
+# Crucial para que as imagens construidas fiquem disponíveis para o Kubernetes.
+& minikube -p minikube docker-env | invoke-expression
+
+# Constrói a imagem da aplicação Node.js
+docker build -t trabalho:latest .
+
+# Constrói a imagem do NGINX
+docker build -t nginx-trabalho:latest ./nginx
+
+# Lista as imagens Docker locais
+docker images
+
+# Aplica TODOS os arquivos .yaml da pasta k8s/.
+# Isso cria todos os 8 objetos (Deployments, Services, ConfigMap) no Kubernetes.
+kubectl apply -f .\k8s\
+
+# Lista os pods
+kubectl get pods
+
+# Abre o serviço do NGINX no navegador.
+minikube service nginx-service
+
+# Abre o painel de administração do Prometheus
+minikube service prometheus
+
+# Abre o painel do Grafana
+minikube service grafana
+
+kubectl rollout restart deployment trabalho

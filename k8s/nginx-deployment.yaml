@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx # nome para o Pod do NGINX
+    spec:
+      containers:
+      - name: nginx
+        image: nginx-trabalho:latest # Imagem criado com o Dockerfile do NGINX
+        imagePullPolicy: Never # Também usa a imagem local do Minikube
+        ports:
+        - containerPort: 80 # Porta que o NGINX escuta 

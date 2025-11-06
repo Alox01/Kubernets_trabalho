@@ -1,0 +1,17 @@
+# Versão da API para Services
+apiVersion: v1
+# Tipo de objeto: Service
+kind: Service
+metadata:
+  name: trabalho # Nome do Service
+spec:
+  # selector diz ao Service para qual Pod ele deve enviar o tráfego
+  selector:
+    app: trabalho # Envia tráfego para qualquer Pod com nome 'app: trabalho'
+  # Configuração das portas
+  ports:
+  - protocol: TCP
+    port: 3123 # Porta que o Service expõe dentro do cluster
+    targetPort: 3123 # Porta de destino no container
+  # type: NodePort expõe o serviço fora do cluster
+  type: NodePort

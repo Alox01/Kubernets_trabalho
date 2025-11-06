@@ -1,0 +1,20 @@
+apiVersion: v1
+# ConfigMap é um objeto do K8s usado para armazenar arquivos de configuração
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+# data armazena o conteúdo do arquivo de configuração
+data:
+  # O nome do arquivo é prometheus.yml e seu conteúdo é o texto abaixo
+  prometheus.yml: |
+    global:
+      # O Prometheus vai coletar métricas de todos os alvos a cada 5 segundos
+      scrape_interval: 5s 
+    # Lista de configurações de coleta ("jobs")
+    scrape_configs:
+      # Nome do job (aparece no painel "Targets" do Prometheus)
+      - job_name: 'trabalho'
+        # Configuração estática (alvos definidos manualmente)
+        static_configs:
+          # O ALVO: o serviço 'trabalho' na porta '3123'
+          - targets: ['trabalho:3123']
