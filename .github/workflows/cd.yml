@@ -20,7 +20,6 @@ jobs:
       - name: Set vars
         id: vars
         run: |
-          # Coloque o nome do seu repositório do Docker Hub
           echo "IMAGE=apolinarioo/kubernets_trabalho" >> $GITHUB_OUTPUT
           echo "TAG_SHA=${{ github.event.workflow_run.head_sha::7 }}" >> $GITHUB_OUTPUT
           echo "NAMESPACE=${{ secrets.K8S_NAMESPACE || 'default' }}" >> $GITHUB_OUTPUT
