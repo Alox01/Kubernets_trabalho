@@ -20,9 +20,9 @@ jobs:
       - name: Set vars
         id: vars
         run: |
-          # (Este nome já está correto e bate com o seu ci.yml)
           echo "IMAGE=apolinarioo/kubernets_trabalho" >> $GITHUB_OUTPUT
-          echo "TAG_SHA=${{ github.event.workflow_run.head_sha::7 }}" >> $GITHUB_OUTPUT
+          SHA_TAG=${{ github.event.workflow_run.head_sha }}
+          echo "TAG_SHA=${SHA_TAG::7}" >> $GITHUB_OUTPUT
           echo "NAMESPACE=${{ secrets.K8S_NAMESPACE || 'default' }}" >> $GITHUB_OUTPUT
 
       - name: Setup kubectl
