@@ -101,3 +101,4 @@ setInterval(() => {
   // Define o valor do 'gauge' para esse número aleatório
   gauge.set(randomValue);
 }, 2000); // executa a cada 2 segundos
+ 
