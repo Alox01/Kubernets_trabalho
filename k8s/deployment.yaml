@@ -4,27 +4,25 @@ apiVersion: apps/v1
 kind: Deployment
 # Metadados sobre o Deployment
 metadata:
-  name: trabalho # Nome deste Deployment
+  name: trabalho # Nome deste Deployment 
 spec:
-  replicas: 1 # Quantos Pods (cópias) deste container devem existir
-  # O 'selector' diz ao Deployment quais Pods ele deve gerenciar
+  replicas: 1 
   selector:
     matchLabels:
-      app: trabalho # Ele vai gerenciar Pods com a nome 'app: trabalho'
-  # 'template' é a receita de como criar cada Pod
+      app: trabalho
   template:
     metadata:
-      # Nome (Label) que será aplicada ao Pod
       labels:
-        app: trabalho # O Service vai usar essa nome para encontrar este Pod
+        app: trabalho
     spec:
-      # Lista de containers que vão rodar dentro do Pod
       containers:
-        - name: trabalho # Nome do container
-          image: trabalho:latest # Imagem Docker que será usada
-          # 'imagePullPolicy: Never' força o Kubernetes a não baixar a imagem,
-          # usando a imagem local que foi criado com o Minikube.
-          imagePullPolicy: Never 
-          # Lista de portas que este container expõe
+        - name: trabalho # Nome do container 
+          
+          image: apolinarioo/Kubernets_trabalho:latest 
+          
+          # Trocado de 'Never' para 'IfNotPresent' ou 'Always' 
+          # Isso força o K8s a baixar a imagem do Docker Hub.
+          imagePullPolicy: IfNotPresent
+          
           ports:
-          - containerPort: 3123 # A porta 3123 a mesma do server.js
+          - containerPort: 3123 # Porta exposta pelo container
