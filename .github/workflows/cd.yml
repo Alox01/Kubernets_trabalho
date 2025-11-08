@@ -15,7 +15,8 @@ jobs:
     
     defaults:
       run:
-        shell: pwsh
+        # Trocado de 'pwsh' para 'powershell' (o padrão do Windows)
+        shell: powershell
 
     steps:
       - name: Checkout
