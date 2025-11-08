@@ -1,0 +1,12 @@
+﻿{
+  "repositoryName": "Alox01/Kubernets_trabalho",
+  "pipelineDirectory": "Kubernets_trabalho",
+  "workspaceDirectory": "Kubernets_trabalho\\Kubernets_trabalho",
+  "repositories": {
+    "Alox01/Kubernets_trabalho": {
+      "repositoryPath": "Kubernets_trabalho\\Kubernets_trabalho",
+      "lastRunOn": "11/08/2025 11:53:49 -03:00"
+    }
+  },
+  "lastRunOn": "11/08/2025 11:53:49 -03:00"
+}
