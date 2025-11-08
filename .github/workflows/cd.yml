@@ -15,7 +15,8 @@ jobs:
     
     defaults:
       run:
-        shell: powershell # O padrão continua powershell
+        # 1. Voltamos para o 'powershell' (padrão do Windows)
+        shell: powershell
 
     steps:
       - name: Checkout
@@ -37,10 +38,9 @@ jobs:
 
       # --- INÍCIO DA CORREÇÃO ---
       - name: Build Nginx image inside Minikube
-        shell: bash # 1. Trocamos o shell para bash SÓ NESTE PASSO
         run: |
-          # 2. Usamos 'eval' (comando bash) em vez de 'invoke-expression' (comando powershell)
-          eval $(minikube -p minikube docker-env)
+          # 2. Adicionado '--shell=powershell' para forçar a saída correta
+          minikube -p minikube docker-env --shell=powershell | invoke-expression
           docker build -t nginx-trabalho:latest ./nginx
       # --- FIM DA CORREÇÃO ---
           
