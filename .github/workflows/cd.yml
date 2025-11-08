@@ -15,7 +15,6 @@ jobs:
     
     defaults:
       run:
-        # 1. Voltamos para o 'powershell' (padrão do Windows)
         shell: powershell
 
     steps:
@@ -39,8 +38,18 @@ jobs:
       # --- INÍCIO DA CORREÇÃO ---
       - name: Build Nginx image inside Minikube
         run: |
-          # 2. Adicionado '--shell=powershell' para forçar a saída correta
-          minikube -p minikube docker-env --shell=powershell | invoke-expression
+          # 1. Pega a saída do minikube docker-env
+          $EnvOutput = (minikube -p minikube docker-env --shell=powershell)
+          
+          # 2. Filtra APENAS as linhas que são comandos para setar variáveis
+          $EnvCommands = $EnvOutput | Where-Object { $_ -like '$Env:*' }
+          
+          # 3. Executa cada comando de forma segura
+          foreach ($Command in $EnvCommands) {
+              Invoke-Expression $Command
+          }
+          
+          # 4. Constroí a imagem
           docker build -t nginx-trabalho:latest ./nginx
       # --- FIM DA CORREÇÃO ---
           
