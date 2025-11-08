@@ -34,3 +34,6 @@ minikube service prometheus
 minikube service grafana
 
 kubectl rollout restart deployment trabalho
+
+cd C:\Users\Apole\Desktop\Trabalho\actions-runner
+./run.cmd
