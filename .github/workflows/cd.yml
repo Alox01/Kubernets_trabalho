@@ -29,7 +29,6 @@ jobs:
           $TAG_SHA = $SHA_FULL.Substring(0, 7)
           echo "TAG_SHA=$TAG_SHA" >> $env:GITHUB_OUTPUT
           
-          # Lógica de PowerShell para garantir que o namespace nunca seja vazio
           $NAMESPACE = "${{ secrets.K8S_NAMESPACE }}"
           if ([string]::IsNullOrWhiteSpace($NAMESPACE)) {
             $NAMESPACE = "default"
@@ -50,16 +49,24 @@ jobs:
           }
           docker build -t nginx-trabalho:latest ./nginx
           
+      # --- INÍCIO DA CORREÇÃO ---
       - name: Create namespace if not exists
         run: |
+          # Força o PowerShell a parar no erro do kubectl
+          $ErrorActionPreference = "Stop" 
           try {
             kubectl create ns ${{ steps.vars.outputs.NAMESPACE }}
           } catch {
-            Write-Host "Namespace provavelmente já existe. Ignorando."
+            Write-Host "Namespace 'default' já existe. Ignorando."
           }
+      # --- FIM DA CORREÇÃO ---
 
+      # --- INÍCIO DA CORREÇÃO ---
       - name: Apply base manifests (Service, Prometheus, Grafana, Nginx)
         run: |
+          # Força o PowerShell a parar no erro do kubectl
+          $ErrorActionPreference = "Stop"
+          
           $manifests = @(
             "k8s/service.yaml",
             "k8s/prometheus-config.yaml",
@@ -74,9 +81,11 @@ jobs:
             try {
               kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f $manifest
             } catch {
+              # Este 'catch' agora vai funcionar e ignorar o erro
               Write-Host "Falha ao aplicar $manifest (provavelmente já existe). Continuando..."
             }
           }
+      # --- FIM DA CORREÇÃO ---
 
       - name: Apply app deployment
         run: |
