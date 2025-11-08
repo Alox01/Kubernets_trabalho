@@ -19,6 +19,7 @@ jobs:
 
       - name: Set vars
         id: vars
+        shell: bash
         run: |
           echo "IMAGE=apolinarioo/kubernets_trabalho" >> $GITHUB_OUTPUT
           SHA_TAG=${{ github.event.workflow_run.head_sha }}
@@ -31,7 +32,7 @@ jobs:
           version: 'latest'
 
       - name: Build Nginx image inside Minikube
-        shell: pwsh 
+        shell: pwsh
         run: |
           & minikube -p minikube docker-env | invoke-expression
           docker build -t nginx-trabalho:latest ./nginx
@@ -43,7 +44,7 @@ jobs:
           kubectl create ns ${{ steps.vars.outputs.NAMESPACE }}
 
       - name: Apply base manifests (Service, Prometheus, Grafana, Nginx)
-        shell: bash 
+        shell: bash
         run: |
           kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f k8s/service.yaml || true
           kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f k8s/prometheus-config.yaml || true
@@ -54,16 +55,16 @@ jobs:
           kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f k8s/nginx-service.yaml || true
 
       - name: Apply app deployment
-        shell: bash 
+        shell: bash
         run: |
           kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f k8s/deployment.yaml
 
       - name: Set image to new tag
-        shell: bash 
+        shell: bash
         run: |
           kubectl set image deployment/trabalho trabalho=${{ steps.vars.outputs.IMAGE }}:${{ steps.vars.outputs.TAG_SHA }} -n ${{ steps.vars.outputs.NAMESPACE }}
 
       - name: Wait rollout
-        shell: bash 
+        shell: bash
         run: |
           kubectl rollout status deployment/trabalho -n ${{ steps.vars.outputs.NAMESPACE }} --timeout=120s
