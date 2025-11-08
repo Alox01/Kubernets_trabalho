@@ -35,37 +35,42 @@ jobs:
         with:
           version: 'latest'
 
-      # --- INÍCIO DA CORREÇÃO ---
       - name: Build Nginx image inside Minikube
         run: |
-          # 1. Pega a saída do minikube docker-env
           $EnvOutput = (minikube -p minikube docker-env --shell=powershell)
-          
-          # 2. Filtra APENAS as linhas que são comandos para setar variáveis
           $EnvCommands = $EnvOutput | Where-Object { $_ -like '$Env:*' }
-          
-          # 3. Executa cada comando de forma segura
           foreach ($Command in $EnvCommands) {
               Invoke-Expression $Command
           }
-          
-          # 4. Constroí a imagem
           docker build -t nginx-trabalho:latest ./nginx
-      # --- FIM DA CORREÇÃO ---
           
       - name: Create namespace if not exists
         run: |
-          kubectl create ns ${{ steps.vars.outputs.NAMESPACE }} -ErrorAction SilentlyContinue
+          try {
+            kubectl create ns ${{ steps.vars.outputs.NAMESPACE }}
+          } catch {
+            Write-Host "Namespace provavelmente já existe. Ignorando."
+          }
 
       - name: Apply base manifests (Service, Prometheus, Grafana, Nginx)
         run: |
-          kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f k8s/service.yaml -ErrorAction SilentlyContinue
-          kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f k8s/prometheus-config.yaml -ErrorAction SilentlyContinue
-          kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f k8s/prometheus-deployment.yaml -ErrorAction SilentlyContinue
-          kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f k8s/grafana-deployment.yaml -ErrorAction SilentlyContinue
-          kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f k8s/grafana-service.yaml -ErrorAction SilentlyContinue
-          kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f k8s/nginx-deployment.yaml -ErrorAction SilentlyContinue
-          kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f k8s/nginx-service.yaml -ErrorAction SilentlyContinue
+          $manifests = @(
+            "k8s/service.yaml",
+            "k8s/prometheus-config.yaml",
+            "k8s/prometheus-deployment.yaml",
+            "k8s/grafana-deployment.yaml",
+            "k8s/grafana-service.yaml",
+            "k8s/nginx-deployment.yaml",
+            "k8s/nginx-service.yaml"
+          )
+          
+          foreach ($manifest in $manifests) {
+            try {
+              kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f $manifest
+            } catch {
+              Write-Host "Falha ao aplicar $manifest (provavelmente já existe). Continuando..."
+            }
+          }
 
       - name: Apply app deployment
         run: |
