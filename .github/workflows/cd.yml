@@ -3,7 +3,7 @@ name: CD - Deploy to Kubernetes
 on:
   workflow_run:
     workflows: ["CI - Build & Push Docker"]
-    types: ["completed"]
+    types: [ "completed" ]
 
 permissions:
   contents: read
@@ -11,9 +11,8 @@ permissions:
 jobs:
   deploy:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    runs-on: ubuntu-latest
-    environment: production
-
+    runs-on: self-hosted
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,47 +20,50 @@ jobs:
       - name: Set vars
         id: vars
         run: |
-          echo "IMAGE=apolinarioo/kubernets_trabalho:latest" >> $GITHUB_OUTPUT
-          echo "TAG_SHA=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+          echo "IMAGE=apolinarioo/kubernets_trabalho" >> $GITHUB_OUTPUT
+          SHA_TAG=${{ github.event.workflow_run.head_sha }}
+          echo "TAG_SHA=${SHA_TAG::7}" >> $GITHUB_OUTPUT
           echo "NAMESPACE=${{ secrets.K8S_NAMESPACE || 'default' }}" >> $GITHUB_OUTPUT
 
       - name: Setup kubectl
         uses: azure/setup-kubectl@v4
         with:
-          version: "latest"
+          version: 'latest'
 
-      - name: Configure kubeconfig
+      - name: Build Nginx image inside Minikube
+        shell: pwsh 
         run: |
-          mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > $HOME/.kube/config
-
+          & minikube -p minikube docker-env | invoke-expression
+          docker build -t nginx-trabalho:latest ./nginx
+          
       - name: Create namespace if not exists
+        shell: bash
         run: |
           kubectl get ns ${{ steps.vars.outputs.NAMESPACE }} || \
           kubectl create ns ${{ steps.vars.outputs.NAMESPACE }}
 
       - name: Apply base manifests (Service, Prometheus, Grafana, Nginx)
+        shell: bash 
         run: |
           kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f k8s/service.yaml || true
+          kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f k8s/prometheus-config.yaml || true
           kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f k8s/prometheus-deployment.yaml || true
           kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f k8s/grafana-deployment.yaml || true
+          kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f k8s/grafana-service.yaml || true
           kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f k8s/nginx-deployment.yaml || true
           kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f k8s/nginx-service.yaml || true
-          kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f k8s/prometheus-config.yaml || true
 
-      - name: Apply app deployment (first time)
+      - name: Apply app deployment
+        shell: bash 
         run: |
           kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f k8s/deployment.yaml
 
       - name: Set image to new tag
+        shell: bash 
         run: |
-          kubectl set image deployment/monitor monitor=${{ steps.vars.outputs.IMAGE }}:${{ steps.vars.outputs.TAG_SHA }} -n ${{ steps.vars.outputs.NAMESPACE }}
+          kubectl set image deployment/trabalho trabalho=${{ steps.vars.outputs.IMAGE }}:${{ steps.vars.outputs.TAG_SHA }} -n ${{ steps.vars.outputs.NAMESPACE }}
 
       - name: Wait rollout
+        shell: bash 
         run: |
-          kubectl rollout status deployment/monitor -n ${{ steps.vars.outputs.NAMESPACE }} --timeout=120s
-
-      - name: Show services (debug)
-        run: |
-          kubectl get svc -n ${{ steps.vars.outputs.NAMESPACE }}
-          kubectl get pods -o wide -n ${{ steps.vars.outputs.NAMESPACE }}
+          kubectl rollout status deployment/trabalho -n ${{ steps.vars.outputs.NAMESPACE }} --timeout=120s
