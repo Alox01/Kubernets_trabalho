@@ -51,40 +51,24 @@ jobs:
           
       # --- INÍCIO DA CORREÇÃO ---
       - name: Create namespace if not exists
+        # Diz ao GitHub Actions para continuar mesmo se este passo falhar
+        continue-on-error: true 
         run: |
-          # Força o PowerShell a parar no erro do kubectl
-          $ErrorActionPreference = "Stop" 
-          try {
-            kubectl create ns ${{ steps.vars.outputs.NAMESPACE }}
-          } catch {
-            Write-Host "Namespace 'default' já existe. Ignorando."
-          }
+          # Removemos o try/catch. Agora o passo vai falhar, mas o 'continue-on-error' vai salvar o workflow.
+          kubectl create ns ${{ steps.vars.outputs.NAMESPACE }}
       # --- FIM DA CORREÇÃO ---
 
       # --- INÍCIO DA CORREÇÃO ---
       - name: Apply base manifests (Service, Prometheus, Grafana, Nginx)
         run: |
-          # Força o PowerShell a parar no erro do kubectl
-          $ErrorActionPreference = "Stop"
-          
-          $manifests = @(
-            "k8s/service.yaml",
-            "k8s/prometheus-config.yaml",
-            "k8s/prometheus-deployment.yaml",
-            "k8s/grafana-deployment.yaml",
-            "k8s/grafana-service.yaml",
-            "k8s/nginx-deployment.yaml",
-            "k8s/nginx-service.yaml"
-          )
-          
-          foreach ($manifest in $manifests) {
-            try {
-              kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f $manifest
-            } catch {
-              # Este 'catch' agora vai funcionar e ignorar o erro
-              Write-Host "Falha ao aplicar $manifest (provavelmente já existe). Continuando..."
-            }
-          }
+          # Removemos o loop e o try/catch. 'kubectl apply' é seguro de rodar de novo (idempotente).
+          kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f k8s/service.yaml
+          kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f k8s/prometheus-config.yaml
+          kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f k8s/prometheus-deployment.yaml
+          kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f k8s/grafana-deployment.yaml
+          kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f k8s/grafana-service.yaml
+          kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f k8s/nginx-deployment.yaml
+          kubectl apply -n ${{ steps.vars.outputs.NAMESPACE }} -f k8s/nginx-service.yaml
       # --- FIM DA CORREÇÃO ---
 
       - name: Apply app deployment
