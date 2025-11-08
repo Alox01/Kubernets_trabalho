@@ -21,7 +21,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # --- INÍCIO DA CORREÇÃO ---
       - name: Set vars
         id: vars
         run: |
@@ -36,7 +35,6 @@ jobs:
             $NAMESPACE = "default"
           }
           echo "NAMESPACE=$NAMESPACE" >> $env:GITHUB_OUTPUT
-      # --- FIM DA CORREÇÃO ---
 
       - name: Setup kubectl
         uses: azure/setup-kubectl@v4
